@@ -100,7 +100,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-line pt-7 text-[12px] leading-relaxed text-ink-faint">
-          <p>훈샵 · 대표 김훈 · 사업자등록번호 000-00-00000</p>
+          <p>훈샵 · 대표 김태훈 · 사업자등록번호 000-00-00000</p>
           <p className="mt-1">서울특별시 중구 세종대로 110 · 고객센터 1234-5678 (평일 10:00–17:00)</p>
           <p className="mt-3">
             © {new Date().getFullYear()} hoonshop. 포트폴리오 목적의 데모이며 실제 거래는

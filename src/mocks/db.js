@@ -248,7 +248,7 @@ export const ADDRESSES = [
   {
     id: 'ADDR-1',
     label: '집',
-    recipient: '김훈',
+    recipient: '김태훈',
     phone: '010-2345-6789',
     zipcode: '04524',
     address1: '서울특별시 중구 세종대로 110',
@@ -258,7 +258,7 @@ export const ADDRESSES = [
   {
     id: 'ADDR-2',
     label: '회사',
-    recipient: '김훈',
+    recipient: '김태훈',
     phone: '010-2345-6789',
     zipcode: '06236',
     address1: '서울특별시 강남구 테헤란로 152',
@@ -270,7 +270,7 @@ export const ADDRESSES = [
 export const DEMO_USER = {
   id: 'U-0001',
   email: 'hoon@example.com',
-  name: '김훈',
+  name: '김태훈',
   grade: 'GOLD',
   point: 3200,
   joinedAt: '2025-11-02T00:00:00Z',
