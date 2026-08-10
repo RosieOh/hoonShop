@@ -1,0 +1,271 @@
+@import 'tailwindcss';
+
+/* ============================================================================
+   hoonshop Design System
+   Style     : Editorial Boutique (Exaggerated Minimalism × Craft Warmth)
+   Type      : Cormorant (display, EN) / Pretendard (body, KO) / Montserrat (label)
+   Palette   : Warm ivory canvas + rosewood plum + champagne gold
+   A11y      : 본문 대비 4.5:1↑, UI 요소 3:1↑ 검증 완료
+   ========================================================================== */
+
+@theme {
+  /* --- Color: semantic tokens only. 컴포넌트에서 raw hex 금지 --- */
+  --color-canvas: #fbf8f4; /* 웜 아이보리 배경 */
+  --color-surface: #ffffff; /* 카드/모달 */
+  --color-surface-sunken: #f3ede6; /* 스켈레톤/이미지 플레이스홀더 */
+  --color-ink: #241e1b; /* 본문 (15.4:1 on canvas) */
+  --color-ink-soft: #6f6259; /* 보조 텍스트 (5.1:1 on canvas) */
+  --color-ink-faint: #9a8d83; /* 비활성 - 텍스트 금지, 아이콘/구분선용 */
+  --color-line: #e8dfd4; /* 기본 보더 */
+  --color-line-strong: #d3c5b5;
+
+  --color-primary: #7a3b52; /* 로즈우드 플럼 (8.1:1 on white) */
+  --color-primary-hover: #632f42;
+  --color-primary-soft: #f7edf1; /* 프라이머리 틴트 배경 */
+  --color-on-primary: #ffffff;
+
+  --color-accent: #b08d57; /* 샴페인 골드 (3.1:1 - 장식/보더 전용) */
+  --color-accent-ink: #7d6134; /* 골드 계열 텍스트용 (5.0:1 on canvas) */
+  --color-accent-soft: #f5eee2;
+
+  --color-sale: #b3261e; /* 세일가 (5.9:1 on white) */
+  --color-success: #2f6b4f;
+  --color-success-soft: #eaf3ee;
+  --color-danger: #b3261e;
+  --color-focus: #7a3b52;
+
+  /* --- Typography --- */
+  --font-display: 'Cormorant', 'Pretendard Variable', Georgia, serif;
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, sans-serif;
+  --font-label: 'Montserrat', 'Pretendard Variable', sans-serif;
+
+  /* --- Radius: 에디토리얼 톤. 이미지는 각지게, 인터랙션 요소만 둥글게 --- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* --- Elevation: 저채도 웜 그림자 (검정 대신 브라운 베이스) --- */
+  --shadow-card: 0 1px 2px rgb(60 42 30 / 0.04), 0 8px 24px rgb(60 42 30 / 0.06);
+  --shadow-pop: 0 4px 12px rgb(60 42 30 / 0.08), 0 20px 48px rgb(60 42 30 / 0.12);
+
+  /* --- Motion: 150–300ms, 기능적 모션만 --- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 320ms;
+
+  /* --- Layout --- */
+  --spacing-header: 68px;
+}
+
+/* ---------------------------------------------------------------- base --- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* 포커스 링은 절대 제거하지 않는다. 키보드 사용자에게만 노출 */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  button,
+  [role='button'],
+  a,
+  summary {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  /* 숫자 정렬: 가격/수량이 흔들리지 않도록 */
+  .tnum,
+  input[type='number'] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  /* 스크롤바 (데스크톱) */
+  @media (pointer: fine) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-line-strong) transparent;
+    }
+  }
+}
+
+/* ------------------------------------------------------------ utilities --- */
+@utility eyebrow {
+  font-family: var(--font-label);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* 스크린리더 전용 */
+@utility sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+
+  &:focus {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 200;
+    width: auto;
+    height: auto;
+    padding: 12px 20px;
+    clip-path: none;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-radius: var(--radius-pill);
+  }
+}
+
+/* 가로 스크롤 영역의 스크롤바 숨김 (키보드 접근성은 유지) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 이미지 비율 고정 → CLS 0에 수렴 */
+@utility media-frame {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+}
+
+/* ------------------------------------------------------------ animation --- */
+@keyframes hs-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hs-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hs-sheen {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes hs-slide-left {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hs-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 그리드 진입: transform/opacity만 애니메이트 (레이아웃 스래싱 방지) */
+.hs-rise {
+  animation: hs-rise var(--dur-slow) var(--ease-out-soft) both;
+}
+.hs-fade {
+  animation: hs-fade var(--dur-base) var(--ease-out-soft) both;
+}
+.hs-slide-left {
+  animation: hs-slide-left var(--dur-base) var(--ease-out-soft) both;
+}
+.hs-pop {
+  animation: hs-pop 320ms var(--ease-out-soft) both;
+}
+
+/* 스켈레톤 */
+.hs-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+}
+.hs-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.65),
+    transparent
+  );
+  animation: hs-sheen 1.4s infinite;
+}
+
+/* 접근성: 모션 민감 사용자는 즉시 표시 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
