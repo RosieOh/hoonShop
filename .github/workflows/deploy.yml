@@ -3,6 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # 백엔드만 고쳤을 때 프론트엔드를 다시 배포할 이유가 없습니다.
+    paths-ignore:
+      - 'backend/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hoonshop-postgres
+    environment:
+      POSTGRES_DB: hoonshop
+      POSTGRES_USER: hoonshop
+      POSTGRES_PASSWORD: hoonshop
+      TZ: Asia/Seoul
+    ports:
+      # 5432는 로컬에 이미 설치된 PostgreSQL이 점유하고 있을 수 있어 5433으로 내보냅니다.
+      # (기존 DB를 건드리지 않기 위한 선택이며, application.yml 기본값도 5433입니다)
+      - "5433:5432"
+    volumes:
+      - hoonshop-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hoonshop -d hoonshop"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  hoonshop-pgdata:

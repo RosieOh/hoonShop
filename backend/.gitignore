@@ -1,0 +1,21 @@
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+.gradle/
+bin/
+out/
+
+### IntelliJ ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### 로컬 환경 설정 (비밀값이 들어갈 수 있음) ###
+application-local.yml
+.env

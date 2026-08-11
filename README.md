@@ -11,6 +11,9 @@ npm run dev      # http://localhost:5173
 백엔드 없이 바로 돕니다. MSW(Mock Service Worker)가 `/api/*` 요청을 가로채 실제 서버처럼
 응답하므로, 상품 조회부터 결제 승인까지 전 과정을 브라우저에서 그대로 체험할 수 있습니다.
 
+> **실제 서버**는 [`backend/`](backend/)에 있습니다 — Spring Boot 3 + Java 17, DDD 구성.
+> 연동 방법과 설계 근거는 [backend/README.md](backend/README.md) 참고.
+
 | 계정 | 이메일 | 비밀번호 | 들어가는 곳 |
 |---|---|---|---|
 | 고객 | `hoon@example.com` | `hoonshop` | 마이페이지 |
