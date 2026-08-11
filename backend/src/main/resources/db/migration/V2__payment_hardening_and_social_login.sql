@@ -1,15 +1,8 @@
 -- =============================================================================
 --  V2 — 결제 강화 + 소셜 로그인
---
---  결제 테이블을 재구성합니다. V1의 payment는 카드 정보를 받는 구조를 전제로 했는데,
---  카드번호가 서버에 닿지 않는 표준 흐름으로 바꾸면서 컬럼 구성이 달라졌습니다.
---  아직 운영 데이터가 없으므로 드롭 후 재생성합니다.
---  (운영 중이었다면 ALTER로 컬럼을 하나씩 옮기고 데이터를 이관해야 합니다.)
 -- =============================================================================
 
-DROP TABLE IF EXISTS payment;
-
-CREATE TABLE payment (
+CREATE TABLE tbl_payment (
     id                BIGSERIAL PRIMARY KEY,
 
     -- 이중 결제를 막는 최후의 방어선. 애플리케이션이 뚫려도 DB가 막습니다.
@@ -46,27 +39,28 @@ CREATE TABLE payment (
     CONSTRAINT ck_payment_cancel_within_approved CHECK (cancelled_amount <= approved_amount)
 );
 
-CREATE INDEX idx_payment_order ON payment (order_number);
-CREATE UNIQUE INDEX uk_payment_payment_key ON payment (payment_key) WHERE payment_key IS NOT NULL;
+CREATE INDEX idx_payment_order ON tbl_payment (order_number);
+CREATE UNIQUE INDEX uk_payment_payment_key ON tbl_payment (payment_key)
+    WHERE payment_key IS NOT NULL;
 -- 대사 배치가 미확정 결제를 빠르게 찾도록
-CREATE INDEX idx_payment_reconcile ON payment (status, requested_at)
+CREATE INDEX idx_payment_reconcile ON tbl_payment (status, requested_at)
     WHERE status IN ('UNKNOWN', 'REQUESTED');
 
 -- 결제 원장: append-only. 상태가 바뀔 때마다 한 줄씩 쌓입니다.
-CREATE TABLE payment_ledger (
+CREATE TABLE tbl_payment_ledger (
     id          BIGSERIAL PRIMARY KEY,
-    payment_id  BIGINT       NOT NULL REFERENCES payment (id) ON DELETE CASCADE,
+    payment_id  BIGINT       NOT NULL REFERENCES tbl_payment (id) ON DELETE CASCADE,
     entry_type  VARCHAR(30)  NOT NULL,
     detail      VARCHAR(300) NOT NULL,
     amount      BIGINT       NOT NULL DEFAULT 0,
     recorded_at TIMESTAMPTZ  NOT NULL
 );
-CREATE INDEX idx_payment_ledger_payment ON payment_ledger (payment_id, recorded_at);
+CREATE INDEX idx_payment_ledger_payment ON tbl_payment_ledger (payment_id, recorded_at);
 
 -- ------------------------------------------------------------- 소셜 로그인 ---
-CREATE TABLE social_account (
+CREATE TABLE tbl_social_account (
     id               BIGSERIAL PRIMARY KEY,
-    user_id          BIGINT       NOT NULL REFERENCES app_user (id) ON DELETE CASCADE,
+    user_id          BIGINT       NOT NULL REFERENCES tbl_user (id) ON DELETE CASCADE,
     provider         VARCHAR(20)  NOT NULL,
 
     -- 프로바이더가 발급한 불변 ID. 이메일이 아니라 이 값으로 계정을 식별합니다
@@ -79,4 +73,4 @@ CREATE TABLE social_account (
 
     CONSTRAINT uk_social_provider_user UNIQUE (provider, provider_user_id)
 );
-CREATE INDEX idx_social_account_user ON social_account (user_id);
+CREATE INDEX idx_social_account_user ON tbl_social_account (user_id);

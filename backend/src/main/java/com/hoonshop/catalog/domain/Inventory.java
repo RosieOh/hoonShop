@@ -18,7 +18,7 @@ import jakarta.persistence.*;
  * 하나만 두면 나중에 누군가 락 없는 조회로 차감하는 코드를 추가했을 때 조용히 뚫립니다.
  */
 @Entity
-@Table(name = "inventory")
+@Table(name = "tbl_inventory")
 public class Inventory extends AggregateRoot {
 
     @Id

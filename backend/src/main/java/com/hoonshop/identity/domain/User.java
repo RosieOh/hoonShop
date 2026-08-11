@@ -14,7 +14,7 @@ import java.time.Instant;
  * 로그인시키는 경로가 생길 수 있습니다.
  */
 @Entity
-@Table(name = "app_user")
+@Table(name = "tbl_user")
 public class User extends AggregateRoot {
 
     @Id

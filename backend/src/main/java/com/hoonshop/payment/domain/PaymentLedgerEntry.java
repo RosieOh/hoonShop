@@ -15,7 +15,7 @@ import java.time.Instant;
  * 타임아웃 후 대사로 확정된 건은 흔적조차 남지 않습니다.
  */
 @Entity
-@Table(name = "payment_ledger")
+@Table(name = "tbl_payment_ledger")
 public class PaymentLedgerEntry {
 
     @Id

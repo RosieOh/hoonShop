@@ -24,7 +24,7 @@ import java.util.List;
  * 총액은 스스로 계산합니다.
  */
 @Entity
-@Table(name = "orders")
+@Table(name = "tbl_order")
 public class Order extends AggregateRoot {
 
     @Id
@@ -58,7 +58,7 @@ public class Order extends AggregateRoot {
     private OrderAmounts amounts;
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "order_coupon", joinColumns = @JoinColumn(name = "order_id"))
+    @CollectionTable(name = "tbl_order_coupon", joinColumns = @JoinColumn(name = "order_id"))
     @Column(name = "coupon_code", nullable = false, length = 40)
     private List<String> couponCodes = new ArrayList<>();
 

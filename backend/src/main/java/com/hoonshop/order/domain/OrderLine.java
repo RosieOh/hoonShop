@@ -13,7 +13,7 @@ import jakarta.persistence.*;
  * 판매가가 바뀐 순간 과거 주문의 결제 금액이 소급해서 달라집니다. 영수증은 그때 그 값이어야 합니다.
  */
 @Entity
-@Table(name = "order_line")
+@Table(name = "tbl_order_line")
 public class OrderLine {
 
     @Id

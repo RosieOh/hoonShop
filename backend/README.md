@@ -213,7 +213,26 @@ ConfirmPaymentService
 문서에 적어두는 것만으로는 안 지켜집니다. 급할 때 누군가 도메인에 `@Autowired`를 붙이고,
 리뷰에서 놓치고, 6개월 뒤엔 도메인이 Spring 없이 테스트조차 안 됩니다.
 
-### 9. 원화는 `long`, `Money` 값 객체로
+### 9. 테이블 이름은 전부 `tbl_` 접두사
+
+`tbl_user` `tbl_product` `tbl_product_palette` `tbl_product_material` `tbl_product_size`
+`tbl_product_color_option` `tbl_product_badge` `tbl_inventory` `tbl_coupon` `tbl_order`
+`tbl_order_line` `tbl_order_coupon` `tbl_payment` `tbl_payment_ledger` `tbl_social_account`
+
+접두사 덕분에 **예약어 회피용 이름이 필요 없어졌습니다.** 원래 `user`와 `order`가 SQL
+예약어라 `app_user` / `orders`로 우회했는데, 이제 `tbl_user` / `tbl_order`처럼 도메인 용어를
+그대로 씁니다. 시퀀스(`order_number_seq`)는 테이블이 아니라 그대로 두었습니다.
+
+엔티티의 `@Table` / `@CollectionTable`만 바뀌었고 JPQL은 엔티티명을 쓰므로 쿼리는
+손대지 않았습니다. `ddl-auto=validate`라 이름이 하나라도 어긋나면 애플리케이션이
+기동하지 않습니다 — 기동에 성공한 것 자체가 15개 테이블 전부 일치한다는 검증입니다.
+
+> V1·V2 마이그레이션을 제자리에서 고쳤습니다(운영 데이터가 없는 단계라 이름 변경
+> 마이그레이션을 따로 쌓는 것보다 깨끗합니다). 이미 예전 스키마로 DB를 만든 적이 있다면
+> 체크섬이 어긋나므로 스키마를 드롭하고 다시 올리세요:
+> `docker compose down -v && docker compose up -d`
+
+### 10. 원화는 `long`, `Money` 값 객체로
 
 `double`은 부동소수점 오차로 금액에 쓸 수 없고, `BigDecimal`은 원화에 없는 소수부 때문에
 스케일·반올림 규칙을 매번 신경 써야 합니다. `Money`는 음수를 허용하지 않고, 뺄셈이 음수가

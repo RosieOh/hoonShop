@@ -16,7 +16,7 @@ import java.util.Optional;
  * 애그리거트 하나에 담기지 않는 규칙이 도메인 서비스가 필요한 전형적인 신호입니다.
  */
 @Entity
-@Table(name = "coupon")
+@Table(name = "tbl_coupon")
 public class Coupon extends AggregateRoot {
 
     @Id

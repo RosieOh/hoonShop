@@ -19,7 +19,7 @@ import java.util.Set;
  * 분리하고 상품 코드로만 연결합니다.
  */
 @Entity
-@Table(name = "product")
+@Table(name = "tbl_product")
 public class Product extends AggregateRoot {
 
     @Id
@@ -59,30 +59,30 @@ public class Product extends AggregateRoot {
     private int soldCount;
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_palette", joinColumns = @JoinColumn(name = "product_id"))
+    @CollectionTable(name = "tbl_product_palette", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "hex", nullable = false, length = 7)
     @OrderColumn(name = "line_order")
     private List<String> palette = new java.util.ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_material", joinColumns = @JoinColumn(name = "product_id"))
+    @CollectionTable(name = "tbl_product_material", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "material", nullable = false, length = 60)
     @OrderColumn(name = "line_order")
     private List<String> materials = new java.util.ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_size", joinColumns = @JoinColumn(name = "product_id"))
+    @CollectionTable(name = "tbl_product_size", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "size_label", nullable = false, length = 40)
     @OrderColumn(name = "line_order")
     private List<String> sizes = new java.util.ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_color_option", joinColumns = @JoinColumn(name = "product_id"))
+    @CollectionTable(name = "tbl_product_color_option", joinColumns = @JoinColumn(name = "product_id"))
     @OrderColumn(name = "line_order")
     private List<ColorOption> colorOptions = new java.util.ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_badge", joinColumns = @JoinColumn(name = "product_id"))
+    @CollectionTable(name = "tbl_product_badge", joinColumns = @JoinColumn(name = "product_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "badge", nullable = false, length = 20)
     private Set<Badge> badges = new LinkedHashSet<>();

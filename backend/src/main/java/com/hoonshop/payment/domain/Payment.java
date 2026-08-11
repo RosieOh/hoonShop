@@ -24,7 +24,7 @@ import java.util.List;
  * "어떻게 여기까지 왔는가"는 알 수 없습니다. 결제 분쟁은 대부분 후자를 물어봅니다.
  */
 @Entity
-@Table(name = "payment",
+@Table(name = "tbl_payment",
         uniqueConstraints = @UniqueConstraint(name = "uk_payment_idempotency",
                 columnNames = "idempotency_key"))
 public class Payment extends AggregateRoot {

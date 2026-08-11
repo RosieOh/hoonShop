@@ -15,7 +15,7 @@ import java.time.Instant;
  * 남의 계정에 붙어버립니다. 프로바이더가 주는 불변 ID를 씁니다.
  */
 @Entity
-@Table(name = "social_account",
+@Table(name = "tbl_social_account",
         uniqueConstraints = @UniqueConstraint(name = "uk_social_provider_user",
                 columnNames = {"provider", "provider_user_id"}))
 public class SocialAccount {

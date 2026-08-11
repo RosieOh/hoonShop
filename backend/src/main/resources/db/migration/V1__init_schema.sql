@@ -1,11 +1,16 @@
 -- =============================================================================
 --  hoonshop 초기 스키마
+--
+--  테이블 이름은 모두 tbl_ 접두사를 씁니다.
+--  덕분에 예약어 회피용 이름(user → app_user, order → orders)이 필요 없어져
+--  tbl_user / tbl_order 처럼 도메인 용어 그대로 쓸 수 있습니다.
+--
 --  스키마의 주인은 Flyway입니다. 엔티티를 고치면 반드시 새 마이그레이션을 추가하세요
 --  (ddl-auto=validate라 불일치가 있으면 애플리케이션이 기동하지 않습니다).
 -- =============================================================================
 
 -- ---------------------------------------------------------------- identity ---
-CREATE TABLE app_user (
+CREATE TABLE tbl_user (
     id            BIGSERIAL PRIMARY KEY,
     email         VARCHAR(120) NOT NULL UNIQUE,
     password_hash VARCHAR(100) NOT NULL,
@@ -17,7 +22,7 @@ CREATE TABLE app_user (
 );
 
 -- ----------------------------------------------------------------- catalog ---
-CREATE TABLE product (
+CREATE TABLE tbl_product (
     id            BIGSERIAL PRIMARY KEY,
     code          VARCHAR(16)  NOT NULL UNIQUE,
     name          VARCHAR(100) NOT NULL,
@@ -31,57 +36,57 @@ CREATE TABLE product (
     sold_count    INTEGER      NOT NULL DEFAULT 0,
     created_at    TIMESTAMPTZ  NOT NULL
 );
-CREATE INDEX idx_product_category ON product (category);
-CREATE INDEX idx_product_created_at ON product (created_at DESC);
+CREATE INDEX idx_product_category ON tbl_product (category);
+CREATE INDEX idx_product_created_at ON tbl_product (created_at DESC);
 
-CREATE TABLE product_palette (
-    product_id BIGINT     NOT NULL REFERENCES product (id) ON DELETE CASCADE,
+CREATE TABLE tbl_product_palette (
+    product_id BIGINT     NOT NULL REFERENCES tbl_product (id) ON DELETE CASCADE,
     hex        VARCHAR(7) NOT NULL,
     line_order INTEGER    NOT NULL,
     PRIMARY KEY (product_id, line_order)
 );
 
-CREATE TABLE product_material (
-    product_id BIGINT      NOT NULL REFERENCES product (id) ON DELETE CASCADE,
+CREATE TABLE tbl_product_material (
+    product_id BIGINT      NOT NULL REFERENCES tbl_product (id) ON DELETE CASCADE,
     material   VARCHAR(60) NOT NULL,
     line_order INTEGER     NOT NULL,
     PRIMARY KEY (product_id, line_order)
 );
 
-CREATE TABLE product_size (
-    product_id BIGINT      NOT NULL REFERENCES product (id) ON DELETE CASCADE,
+CREATE TABLE tbl_product_size (
+    product_id BIGINT      NOT NULL REFERENCES tbl_product (id) ON DELETE CASCADE,
     size_label VARCHAR(40) NOT NULL,
     line_order INTEGER     NOT NULL,
     PRIMARY KEY (product_id, line_order)
 );
 
-CREATE TABLE product_color_option (
-    product_id  BIGINT      NOT NULL REFERENCES product (id) ON DELETE CASCADE,
+CREATE TABLE tbl_product_color_option (
+    product_id  BIGINT      NOT NULL REFERENCES tbl_product (id) ON DELETE CASCADE,
     color_id    VARCHAR(32) NOT NULL,
     color_label VARCHAR(32) NOT NULL,
     color_hex   VARCHAR(7)  NOT NULL,
     line_order  INTEGER     NOT NULL,
     PRIMARY KEY (product_id, line_order)
 );
-CREATE INDEX idx_color_option_color_id ON product_color_option (color_id);
+CREATE INDEX idx_color_option_color_id ON tbl_product_color_option (color_id);
 
-CREATE TABLE product_badge (
-    product_id BIGINT      NOT NULL REFERENCES product (id) ON DELETE CASCADE,
+CREATE TABLE tbl_product_badge (
+    product_id BIGINT      NOT NULL REFERENCES tbl_product (id) ON DELETE CASCADE,
     badge      VARCHAR(20) NOT NULL,
     PRIMARY KEY (product_id, badge)
 );
 
 -- 재고는 상품과 별도 애그리거트입니다 (잠금 범위를 좁히기 위해).
-CREATE TABLE inventory (
+CREATE TABLE tbl_inventory (
     id       BIGSERIAL PRIMARY KEY,
     code     VARCHAR(16) NOT NULL UNIQUE,
     quantity INTEGER     NOT NULL CHECK (quantity >= 0),
     version  BIGINT
 );
-CREATE INDEX idx_inventory_quantity ON inventory (quantity);
+CREATE INDEX idx_inventory_quantity ON tbl_inventory (quantity);
 
 -- --------------------------------------------------------------- promotion ---
-CREATE TABLE coupon (
+CREATE TABLE tbl_coupon (
     id           BIGSERIAL PRIMARY KEY,
     code         VARCHAR(40) NOT NULL UNIQUE,
     name         VARCHAR(80) NOT NULL,
@@ -97,7 +102,7 @@ CREATE TABLE coupon (
 -- 주문번호 채번. 애플리케이션에서 MAX+1을 계산하면 동시 주문 시 충돌합니다.
 CREATE SEQUENCE order_number_seq START WITH 1 INCREMENT BY 1;
 
-CREATE TABLE orders (
+CREATE TABLE tbl_order (
     id                BIGSERIAL PRIMARY KEY,
     order_number      VARCHAR(24)  NOT NULL UNIQUE,
     customer_email    VARCHAR(120) NOT NULL,
@@ -124,12 +129,12 @@ CREATE TABLE orders (
     paid_at           TIMESTAMPTZ,
     version           BIGINT
 );
-CREATE INDEX idx_orders_customer ON orders (customer_email, created_at DESC);
-CREATE INDEX idx_orders_status ON orders (status, created_at DESC);
+CREATE INDEX idx_order_customer ON tbl_order (customer_email, created_at DESC);
+CREATE INDEX idx_order_status ON tbl_order (status, created_at DESC);
 
-CREATE TABLE order_line (
+CREATE TABLE tbl_order_line (
     id           BIGSERIAL PRIMARY KEY,
-    order_id     BIGINT       NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
+    order_id     BIGINT       NOT NULL REFERENCES tbl_order (id) ON DELETE CASCADE,
     product_code VARCHAR(16)  NOT NULL,
     product_name VARCHAR(100) NOT NULL,
     color_id     VARCHAR(32)  NOT NULL,
@@ -140,28 +145,10 @@ CREATE TABLE order_line (
     list_price   BIGINT       NOT NULL,
     unit_price   BIGINT       NOT NULL
 );
-CREATE INDEX idx_order_line_order ON order_line (order_id);
+CREATE INDEX idx_order_line_order ON tbl_order_line (order_id);
 
-CREATE TABLE order_coupon (
-    order_id    BIGINT      NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
+CREATE TABLE tbl_order_coupon (
+    order_id    BIGINT      NOT NULL REFERENCES tbl_order (id) ON DELETE CASCADE,
     coupon_code VARCHAR(40) NOT NULL
 );
-CREATE INDEX idx_order_coupon_order ON order_coupon (order_id);
-
--- ----------------------------------------------------------------- payment ---
-CREATE TABLE payment (
-    id              BIGSERIAL PRIMARY KEY,
-    -- 이 UNIQUE 제약이 이중 결제를 막는 최후의 방어선입니다.
-    idempotency_key VARCHAR(80) NOT NULL,
-    order_number    VARCHAR(24) NOT NULL,
-    payment_key     VARCHAR(60),
-    method          VARCHAR(20) NOT NULL,
-    amount          BIGINT      NOT NULL CHECK (amount >= 0),
-    status          VARCHAR(20) NOT NULL,
-    failure_code    VARCHAR(40),
-    failure_message VARCHAR(200),
-    requested_at    TIMESTAMPTZ NOT NULL,
-    approved_at     TIMESTAMPTZ,
-    CONSTRAINT uk_payment_idempotency UNIQUE (idempotency_key)
-);
-CREATE INDEX idx_payment_order ON payment (order_number);
+CREATE INDEX idx_order_coupon_order ON tbl_order_coupon (order_id);
