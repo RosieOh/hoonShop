@@ -5,8 +5,11 @@ import com.hoonshop.catalog.application.InventoryService;
 import com.hoonshop.catalog.application.ProductQueryService;
 import com.hoonshop.catalog.domain.ProductCode;
 import com.hoonshop.catalog.domain.ProductSearchCommand;
+import com.hoonshop.order.application.CancelOrderService;
 import com.hoonshop.order.application.OrderQueryService;
+import com.hoonshop.order.application.OrderStateService;
 import com.hoonshop.order.application.OrderView;
+import com.hoonshop.order.domain.OrderStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -27,14 +30,20 @@ public class AdminController {
 
     private final AdminStatsService statsService;
     private final OrderQueryService orderQueryService;
+    private final OrderStateService orderStateService;
+    private final CancelOrderService cancelOrderService;
     private final ProductQueryService productQueryService;
     private final InventoryService inventoryService;
 
     public AdminController(AdminStatsService statsService, OrderQueryService orderQueryService,
+                           OrderStateService orderStateService,
+                           CancelOrderService cancelOrderService,
                            ProductQueryService productQueryService,
                            InventoryService inventoryService) {
         this.statsService = statsService;
         this.orderQueryService = orderQueryService;
+        this.orderStateService = orderStateService;
+        this.cancelOrderService = cancelOrderService;
         this.productQueryService = productQueryService;
         this.inventoryService = inventoryService;
     }
@@ -53,11 +62,23 @@ public class AdminController {
         return new OrderListResponse(items, items.size());
     }
 
-    @Operation(summary = "주문 상태 변경")
+    @Operation(summary = "주문 상태 변경 (다음 단계로 진행)",
+            description = "취소는 환불이 필요하므로 이 API로 처리하지 않고 취소 전용 API를 씁니다.")
     @PatchMapping("/orders/{orderNumber}")
     public OrderView changeOrderStatus(@PathVariable String orderNumber,
                                        @RequestBody StatusChangeRequest request) {
-        return orderQueryService.changeStatus(orderNumber, request.status());
+        return orderStateService.advance(orderNumber, OrderStatus.valueOf(request.status()));
+    }
+
+    @Operation(summary = "주문 취소 (환불 포함)",
+            description = "결제된 주문이면 PG 환불 후 취소하고 재고를 복원합니다.")
+    @PostMapping("/orders/{orderNumber}/cancel")
+    public OrderView cancelOrder(@PathVariable String orderNumber,
+                                 @RequestBody(required = false) CancelRequest request) {
+        String reason = (request == null || request.reason() == null || request.reason().isBlank())
+                ? "관리자 취소"
+                : request.reason();
+        return cancelOrderService.cancel(orderNumber, reason, null, true);
     }
 
     @Operation(summary = "상품·재고 목록 (재고 적은 순)")
@@ -92,6 +113,9 @@ public class AdminController {
     }
 
     public record StatusChangeRequest(@NotBlank String status) {
+    }
+
+    public record CancelRequest(String reason) {
     }
 
     public record StockAdjustRequest(int stock) {

@@ -44,6 +44,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**", "/api/qna/**").permitAll()
                         // 재고 확인은 로그인 전에도 필요합니다 (장바구니에서 바로 확인)
                         .requestMatchers(HttpMethod.POST, "/api/orders/validate").permitAll()
+                        // 소셜 로그인 콜백
+                        .requestMatchers("/api/auth/oauth/**").permitAll()
+                        // PG 웹훅은 우리 토큰이 없습니다. 대신 HMAC 서명으로 인증합니다.
+                        .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
                         .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
 

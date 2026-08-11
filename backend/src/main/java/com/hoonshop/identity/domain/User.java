@@ -69,6 +69,26 @@ public class User extends AggregateRoot {
                 role == Role.ADMIN ? "STAFF" : "BASIC", 0, Instant.now());
     }
 
+    /**
+     * 소셜 로그인으로 가입.
+     *
+     * <p>비밀번호를 무작위 값으로 채웁니다. 빈 값이나 고정값을 넣으면 그 값으로 일반 로그인이
+     * 뚫립니다. 사용자는 이 비밀번호를 모르므로 사실상 비밀번호 로그인이 막힌 계정이 되고,
+     * 나중에 비밀번호를 설정하면 그때부터 두 방식 모두 쓸 수 있습니다.
+     *
+     * <p>이메일이 없을 수도 있습니다 (카카오는 이메일 동의가 선택 항목입니다).
+     * 그 경우 프로바이더 ID 기반의 내부 이메일을 만들어 씁니다 — 이메일은 우리 시스템의
+     * 계정 식별자이지, 연락 수단으로만 쓰는 값이 아니기 때문입니다.
+     */
+    public static User registerBySocial(Email email, String name, PasswordEncoder encoder) {
+        // UUID 하나(36자)면 충분합니다. 두 개를 이어붙이면 73바이트가 되어
+        // BCrypt의 72바이트 상한에 걸립니다 (Spring Security 6부터 예외를 던집니다).
+        String unusablePassword = java.util.UUID.randomUUID().toString();
+        return new User(email, encoder.encode(unusablePassword),
+                (name == null || name.isBlank()) ? "고객" : name,
+                Role.CUSTOMER, "BASIC", 0, Instant.now());
+    }
+
     /** 시드 데이터 전용 — 등급·포인트·가입일을 지정해 만듭니다. */
     public static User restore(Email email, String rawPassword, String name, Role role,
                                String grade, int point, Instant joinedAt,

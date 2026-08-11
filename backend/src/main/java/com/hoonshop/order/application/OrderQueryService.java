@@ -2,7 +2,6 @@ package com.hoonshop.order.application;
 
 import com.hoonshop.common.domain.DomainException;
 import com.hoonshop.order.domain.*;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +12,9 @@ import java.util.List;
 public class OrderQueryService {
 
     private final OrderRepository orders;
-    private final ApplicationEventPublisher events;
 
-    public OrderQueryService(OrderRepository orders, ApplicationEventPublisher events) {
+    public OrderQueryService(OrderRepository orders) {
         this.orders = orders;
-        this.events = events;
     }
 
     public List<OrderView> myOrders(String email) {
@@ -43,23 +40,6 @@ public class OrderQueryService {
                 ? null
                 : OrderStatus.valueOf(status);
         return orders.searchForAdmin(parsed, keyword).stream().map(OrderView::from).toList();
-    }
-
-    /** 관리자 상태 변경. 허용 전이 판단은 애그리거트가 합니다. */
-    @Transactional
-    public OrderView changeStatus(String orderNumber, String targetStatus) {
-        Order order = load(orderNumber);
-        OrderStatus target = OrderStatus.valueOf(targetStatus);
-
-        if (target == OrderStatus.CANCELLED) {
-            order.cancel("관리자 취소");
-        } else {
-            order.changeStatus(target);
-        }
-
-        orders.save(order);
-        order.pollEvents().forEach(events::publishEvent);
-        return OrderView.from(order);
     }
 
     Order load(String orderNumber) {

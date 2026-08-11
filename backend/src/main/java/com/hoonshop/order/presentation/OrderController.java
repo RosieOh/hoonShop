@@ -2,6 +2,7 @@ package com.hoonshop.order.presentation;
 
 import com.hoonshop.catalog.application.InventoryService;
 import com.hoonshop.common.domain.DomainException;
+import com.hoonshop.order.application.CancelOrderService;
 import com.hoonshop.order.application.OrderQueryService;
 import com.hoonshop.order.application.OrderView;
 import com.hoonshop.order.application.PlaceOrderService;
@@ -23,13 +24,16 @@ public class OrderController {
 
     private final PlaceOrderService placeOrderService;
     private final OrderQueryService orderQueryService;
+    private final CancelOrderService cancelOrderService;
     private final InventoryService inventoryService;
 
     public OrderController(PlaceOrderService placeOrderService,
                            OrderQueryService orderQueryService,
+                           CancelOrderService cancelOrderService,
                            InventoryService inventoryService) {
         this.placeOrderService = placeOrderService;
         this.orderQueryService = orderQueryService;
+        this.cancelOrderService = cancelOrderService;
         this.inventoryService = inventoryService;
     }
 
@@ -81,6 +85,18 @@ public class OrderController {
         return orderQueryService.myOrder(orderNumber, requireEmail(authentication));
     }
 
+    @Operation(summary = "주문 취소",
+            description = "결제된 주문이면 환불 후 취소합니다. 발송 이후에는 취소할 수 없습니다.")
+    @PostMapping("/{orderNumber}/cancel")
+    public OrderView cancel(@PathVariable String orderNumber,
+                            @RequestBody(required = false) CancelRequest request,
+                            Authentication authentication) {
+        String reason = (request == null || request.reason() == null || request.reason().isBlank())
+                ? "고객 요청"
+                : request.reason();
+        return cancelOrderService.cancel(orderNumber, reason, requireEmail(authentication), false);
+    }
+
     private String requireEmail(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new DomainException.Unauthorized("UNAUTHENTICATED", "로그인이 필요합니다.");
@@ -118,5 +134,8 @@ public class OrderController {
     }
 
     public record OrderListResponse(List<OrderView> items) {
+    }
+
+    public record CancelRequest(String reason) {
     }
 }
