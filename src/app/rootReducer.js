@@ -6,6 +6,7 @@ import { searchApi } from '@/features/search/searchApi';
 import { orderApi } from '@/features/order/orderApi';
 import { promoApi } from '@/features/marketing/promoApi';
 import { reviewApi } from '@/features/cs/reviewApi';
+import { adminApi } from '@/features/admin/adminApi';
 
 import authReducer from '@/features/auth/authSlice';
 import cartReducer from '@/features/cart/cartSlice';
@@ -15,7 +16,7 @@ import orderReducer from '@/features/order/orderSlice';
 import paymentReducer from '@/features/payment/paymentSlice';
 import promoReducer from '@/features/marketing/promoSlice';
 
-export const apis = [authApi, productApi, searchApi, orderApi, promoApi, reviewApi];
+export const apis = [authApi, productApi, searchApi, orderApi, promoApi, reviewApi, adminApi];
 
 export const rootReducer = combineReducers({
   // 🌐 서버 상태 (RTK Query) — 캐시·무효화·재검증은 여기서 담당
@@ -25,6 +26,7 @@ export const rootReducer = combineReducers({
   [orderApi.reducerPath]: orderApi.reducer,
   [promoApi.reducerPath]: promoApi.reducer,
   [reviewApi.reducerPath]: reviewApi.reducer,
+  [adminApi.reducerPath]: adminApi.reducer,
 
   // 💻 클라이언트 상태 (Slices) — 서버가 모르는 UI/의사결정 상태만
   auth: authReducer,

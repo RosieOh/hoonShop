@@ -97,7 +97,15 @@ const SIZE_BY_CATEGORY = {
 };
 
 const DAY = 86_400_000;
-const EPOCH = Date.parse('2026-08-11T00:00:00Z');
+
+/**
+ * 시드 데이터의 기준 시각.
+ *
+ * 고정 날짜를 박아두면 배포 후 시간이 흐를수록 데이터가 과거로 밀려나고,
+ * 대시보드의 "최근 14일" 창에서 전부 빠져나가 빈 차트가 됩니다.
+ * 앱이 로드되는 시점을 기준으로 잡아 언제 열어봐도 살아있는 데모가 되게 합니다.
+ */
+const EPOCH = Date.now();
 
 export const PRODUCTS = raw.map((row, i) => {
   const [name, category, colorway, price, discountRate, rating, reviewCount, badges, description] = row;
@@ -271,7 +279,103 @@ export const DEMO_USER = {
   id: 'U-0001',
   email: 'hoon@example.com',
   name: '김태훈',
+  role: 'customer',
   grade: 'GOLD',
   point: 3200,
   joinedAt: '2025-11-02T00:00:00Z',
 };
+
+export const ADMIN_USER = {
+  id: 'U-0000',
+  email: 'admin@hoonshop.com',
+  name: '김태훈',
+  role: 'admin',
+  grade: 'STAFF',
+  point: 0,
+  joinedAt: '2025-09-01T00:00:00Z',
+};
+
+/* ========================================================================== */
+/*  관리자용 시드 데이터                                                        */
+/* ========================================================================== */
+
+/**
+ * 주문 상태는 순서가 있는 단계입니다 (취소만 예외).
+ * 이 순서가 곧 대시보드 ordinal 색 램프의 순서이기도 합니다.
+ */
+export const ORDER_STATUS = [
+  { id: 'PAID', label: '결제 완료', next: 'MAKING' },
+  { id: 'MAKING', label: '제작 중', next: 'SHIPPED' },
+  { id: 'SHIPPED', label: '발송', next: 'DELIVERED' },
+  { id: 'DELIVERED', label: '배송 완료', next: null },
+  { id: 'CANCELLED', label: '취소', next: null },
+];
+
+const BUYERS = [
+  ['이서연', 'seoyeon@example.com', '010-4412-8830', '서울특별시 마포구 양화로 45'],
+  ['박도윤', 'doyun@example.com', '010-9921-2043', '경기도 성남시 분당구 판교역로 235'],
+  ['최하은', 'haeun@example.com', '010-3388-7712', '부산광역시 해운대구 센텀중앙로 79'],
+  ['정민준', 'minjun@example.com', '010-7745-1120', '인천광역시 연수구 컨벤시아대로 165'],
+  ['강수아', 'sua@example.com', '010-2210-5567', '대전광역시 유성구 대학로 291'],
+  ['윤지호', 'jiho@example.com', '010-6634-9081', '광주광역시 서구 상무중앙로 58'],
+  ['임채원', 'chaewon@example.com', '010-5519-3376', '서울특별시 성동구 왕십리로 83'],
+  ['오건우', 'gunwoo@example.com', '010-8802-4419', '경기도 고양시 일산동구 중앙로 1275'],
+];
+
+/** 시드 주문 22건. 최근 14일에 걸쳐 분포하며 상태가 섞여 있습니다. */
+export const SEED_ORDERS = Array.from({ length: 22 }, (_, i) => {
+  const daysAgo = Math.floor((i * 13) / 21); // 0~13일 전에 고르게 분포
+  const buyer = BUYERS[i % BUYERS.length];
+  const lineCount = (i % 3) + 1;
+
+  const items = Array.from({ length: lineCount }, (_, k) => {
+    const product = PRODUCTS[(i * 5 + k * 7) % PRODUCTS.length];
+    const quantity = ((i + k) % 3) + 1;
+    return {
+      productId: product.id,
+      name: product.name,
+      options: {
+        color: product.colorOptions[0].id,
+        colorLabel: product.colorOptions[0].label,
+        size: product.sizes[k % Math.max(1, product.sizes.length)] ?? null,
+      },
+      quantity,
+      price: product.salePrice ?? product.price,
+    };
+  });
+
+  const subtotal = items.reduce((sum, it) => sum + it.price * it.quantity, 0);
+  const shippingFee = subtotal >= 50_000 ? 0 : 3_000;
+
+  // 오래된 주문일수록 뒤 단계로. 3건은 취소 처리해 예외 흐름도 보이게 합니다.
+  const status =
+    i % 9 === 4
+      ? 'CANCELLED'
+      : daysAgo >= 10
+        ? 'DELIVERED'
+        : daysAgo >= 6
+          ? 'SHIPPED'
+          : daysAgo >= 2
+            ? 'MAKING'
+            : 'PAID';
+
+  const createdAt = new Date(EPOCH - daysAgo * DAY - (i % 7) * 3_600_000).toISOString();
+
+  return {
+    id: `ORD-2026-${String(900 - i).padStart(5, '0')}`,
+    customer: { name: buyer[0], email: buyer[1] },
+    items,
+    shippingAddress: {
+      recipient: buyer[0],
+      phone: buyer[2],
+      zipcode: String(10000 + i * 137).slice(0, 5),
+      address1: buyer[3],
+      address2: `${(i % 15) + 1}0${(i % 9) + 1}호`,
+    },
+    deliveryMemo: i % 4 === 0 ? '문 앞에 놓아주세요' : '',
+    couponIds: [],
+    amount: subtotal + shippingFee,
+    status,
+    createdAt,
+  };
+});

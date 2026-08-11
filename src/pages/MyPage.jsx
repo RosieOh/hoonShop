@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Heart, LogOut, Package, TicketPercent } from 'lucide-react';
+import { ChevronRight, Heart, LayoutDashboard, LogOut, Package, TicketPercent } from 'lucide-react';
 import Button from '@/components/common/Button';
 import EmptyState from '@/components/common/EmptyState';
 import LoginView from '@/features/auth/LoginView';
@@ -54,6 +54,22 @@ export default function MyPage() {
           로그아웃
         </Button>
       </header>
+
+      {user.role === 'admin' && (
+        <Link
+          to="/admin"
+          className="mb-3 flex items-center gap-3 rounded-md border border-primary/25 bg-primary-soft p-5 transition-colors hover:border-primary/50"
+        >
+          <LayoutDashboard size={20} className="shrink-0 text-primary" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold text-primary">관리자 콘솔</span>
+            <span className="block text-[13px] text-ink-soft">
+              주문 처리, 재고 수정, 문의 답변을 여기서 합니다
+            </span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-primary" aria-hidden="true" />
+        </Link>
+      )}
 
       <ul className="grid grid-cols-3 gap-3">
         <SummaryCard icon={Package} label="주문" value={orders.length} to="#orders" />

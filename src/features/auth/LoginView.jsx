@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, ShieldCheck } from 'lucide-react';
 import Button from '@/components/common/Button';
 import Field from '@/components/common/Field';
 import { useToast } from '@/components/common/Toast';
@@ -20,8 +20,6 @@ export default function LoginView() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
 
-  const from = location.state?.from ?? '/';
-
   const submit = async (e) => {
     e.preventDefault();
     const nextErrors = validateForm(values, ['email', 'password']);
@@ -29,17 +27,19 @@ export default function LoginView() {
     if (Object.keys(nextErrors).length) return;
 
     try {
-      await login(values).unwrap();
+      const { user } = await login(values).unwrap();
       dispatch(setRedirectTo(null));
       toast('로그인되었어요');
-      navigate(from, { replace: true });
+      // 가려던 곳이 있으면 그리로, 없으면 역할에 맞는 첫 화면으로 보냅니다.
+      const fallback = user.role === 'admin' ? '/admin' : '/';
+      navigate(location.state?.from ?? fallback, { replace: true });
     } catch (err) {
       setServerError(err?.data?.message ?? '로그인 중 문제가 발생했습니다.');
     }
   };
 
-  const fillDemo = () => {
-    setValues({ email: 'hoon@example.com', password: 'hoonshop' });
+  const fillDemo = (email) => {
+    setValues({ email, password: 'hoonshop' });
     setErrors({});
     setServerError(null);
   };
@@ -87,15 +87,39 @@ export default function LoginView() {
           로그인
         </Button>
 
-        <Button type="button" variant="ghost" full icon={KeyRound} onClick={fillDemo}>
-          데모 계정으로 채우기
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            full
+            icon={KeyRound}
+            onClick={() => fillDemo('hoon@example.com')}
+          >
+            고객 계정
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            full
+            icon={ShieldCheck}
+            onClick={() => fillDemo('admin@hoonshop.com')}
+          >
+            관리자 계정
+          </Button>
+        </div>
       </form>
 
-      <p className="mt-6 rounded-md bg-canvas p-4 text-[12px] leading-relaxed text-ink-soft">
-        데모 계정 — 이메일 <b className="text-ink">hoon@example.com</b> / 비밀번호{' '}
-        <b className="text-ink">hoonshop</b>
-      </p>
+      <div className="mt-6 space-y-1.5 rounded-md bg-canvas p-4 text-[12px] leading-relaxed text-ink-soft">
+        <p>
+          고객 데모 — <b className="text-ink">hoon@example.com</b>
+        </p>
+        <p>
+          관리자 데모 — <b className="text-ink">admin@hoonshop.com</b>
+        </p>
+        <p>
+          공통 비밀번호 <b className="text-ink">hoonshop</b>
+        </p>
+      </div>
     </div>
   );
 }

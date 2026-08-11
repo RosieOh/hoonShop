@@ -6,6 +6,14 @@ export const formatPrice = (value) => KRW.format(Math.round(Number(value) || 0))
 /** 12000 → "12,000원" */
 export const formatWon = (value) => `${formatPrice(value)}원`;
 
+/** 큰 금액 축약: 12,340,000 → "1,234만" · 축 눈금과 통계 타일용 */
+export function formatCompactWon(value) {
+  const n = Math.round(Number(value) || 0);
+  if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억`;
+  if (n >= 10_000) return `${KRW.format(Math.round(n / 10_000))}만`;
+  return KRW.format(n);
+}
+
 /** ISO → "2026.08.11" */
 export function formatDate(iso) {
   const d = new Date(iso);
@@ -13,6 +21,14 @@ export function formatDate(iso) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
     d.getDate(),
   ).padStart(2, '0')}`;
+}
+
+/** ISO → "08.11 (화)" — 차트 x축·표 헤더용 */
+export function formatShortDate(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '-';
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+  return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${weekday})`;
 }
 
 /** 상대 시간: "3일 전" */
